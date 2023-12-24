@@ -1,1 +1,3 @@
-{"date":"timestamp:", "name": "str:rand", "type":"str:['client', 'partner', 'government']", "age": "int:rand(1, 90)"}
+{
+  "role": "str:['admin', 'user', 'guest']"
+}

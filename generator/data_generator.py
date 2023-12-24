@@ -1,30 +1,9 @@
-import json
-import os
 import random
 import time
 import uuid
-
-
-def generate_data(schema, file_count, data_lines, path_to_save, file_name, file_prefix, multiprocessing):
-    os.makedirs(path_to_save, exist_ok=True)
-    if os.path.isfile(schema):
-        with open(schema, 'r') as schema_file:
-            schema = json.load(schema_file)
-    elif isinstance(schema, str):
-        schema = json.loads(schema)
-
-    for i in range(file_count):
-        complete_file_name = f"{file_name}_{file_prefix}{i}.json" if file_prefix else f"{file_name}{i}.json"
-        file_path = os.path.join(path_to_save, complete_file_name)
-        # result = []
-        with open(file_path, 'w') as file:
-            for _ in range(data_lines):
-                data_entry = generate_data_entry(schema)
-                # result.append(data_entry)
-                json.dump(data_entry, file)
-                file.write('\n')
-            # json.dump(result, file)
-    print(f"Generated {file_count} files in {path_to_save}.")
+from multiprocessing import Pool
+import os
+import json
 
 
 def generate_data_entry(schema):
@@ -56,14 +35,32 @@ def generate_data_entry(schema):
     return data_entry
 
 
-test_schema = {
-        "date": "timestamp:",
-        "name": "str:rand",
-        "type": "str:['client', 'partner', 'government']",
-        "age": "int:rand(1,90)"
-    }
+def generate_single_file(args):
+    schema, data_lines, file_path = args
+    with open(file_path, 'w') as file:
+        for _ in range(data_lines):
+            data_entry = generate_data_entry(schema)
+            json.dump(data_entry, file)
+            file.write('\n')
 
 
+def generate_data(schema, file_count, data_lines, path_to_save, file_name, file_prefix, multiprocessing):
+    os.makedirs(path_to_save, exist_ok=True)
+    if os.path.isfile(schema):
+        with open(schema, 'r') as schema_file:
+            schema = json.load(schema_file)
+    elif isinstance(schema, str):
+        schema = json.loads(schema)
 
+    # Prepare the arguments for each process
+    args_list = []
+    for i in range(file_count):
+        complete_file_name = f"{file_name}_{file_prefix}{i}.json" if file_prefix else f"{file_name}{i}.json"
+        file_path = os.path.join(path_to_save, complete_file_name)
+        args_list.append((schema, data_lines, file_path))
 
+    # Use a multiprocessing pool to generate files in parallel
+    with Pool(processes=multiprocessing) as pool:
+        pool.map(generate_single_file, args_list)
 
+    print(f"Generated {file_count} files in {path_to_save}.")
