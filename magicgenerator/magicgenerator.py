@@ -2,6 +2,7 @@ import argparse
 import time
 import sys
 from generator.data_generator import generate_data
+from generator.schema_parser import parse_schema, validate_schema
 from utils.file_handler import clear_directory
 from utils.config_reader import read_defaults
 import logging
@@ -27,8 +28,19 @@ def main():
 
     config = read_defaults('default.ini')
 
+
+
     if args.clear_path:
         clear_directory(args.path_to_save_files, args.file_name)
+
+    try:
+        parsed_schema = parse_schema(args.data_schema)
+        if not validate_schema(parsed_schema):
+            logging.error("Invalid schema provided")
+            sys.exit(1)
+    except ValueError as e:
+        logging.error(f"Schema validation error: {e}")
+        sys.exit(1)
 
     logging.info("Starting data generation.")
     start_time = time.time()

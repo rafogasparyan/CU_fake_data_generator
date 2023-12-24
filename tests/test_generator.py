@@ -4,6 +4,8 @@ from generator.data_generator import generate_data
 from utils.file_handler import clear_directory  # Adjust import path as needed
 import json
 import os
+from generator.schema_parser import parse_schema, validate_schema
+import logging
 
 # Test data
 test_data_types = [
@@ -46,12 +48,7 @@ def test_different_data_schemas(schema, expected_keys):
         assert key in data_entry, f"Expected key '{key}' is missing in the generated data entry"
 
 
-
-
-
-
 # Fixture to create a temporary schema file
-
 """    
 The tmp_path fixture creates a temporary directory that is unique to the test run.
 All files created during the test (including the schema file and any generated data files) 
@@ -79,10 +76,9 @@ def test_generate_data_with_schema_file(temp_schema_file):
     file_prefix = None
     multiprocessing = 1
 
-    # Call the generate_data function using the temporary schema file
     generate_data(temp_schema_file, file_count, data_lines, output_dir, file_name, file_prefix, multiprocessing)
 
-    # Check if the file was created
+    # Check if the file is created
     generated_file = os.path.join(output_dir, f"{file_name}0.json")
     assert os.path.exists(generated_file), "Data file was not created"
 
@@ -90,7 +86,8 @@ def test_generate_data_with_schema_file(temp_schema_file):
 def create_dummy_files(tmp_path, prefix, count):
     for i in range(count):
         file = tmp_path / f"{prefix}{i}.json"
-        file.touch()  # Creates an empty file
+        # Creates an empty file
+        file.touch()
 
 
 def test_clear_directory(tmp_path):
@@ -99,11 +96,64 @@ def test_clear_directory(tmp_path):
     # Create files for the test in the temporary directory
     create_dummy_files(tmp_path, prefix, dummy_file_count)
 
-    # Ensure files are created
+    # Check if files are created
     assert len(os.listdir(tmp_path)) == dummy_file_count
 
     clear_directory(str(tmp_path), prefix)
 
-    # Check if the directory is cleared
+    # Check if the files are deleted
     assert len(os.listdir(tmp_path)) == 0, "Directory not cleared properly"
+
+
+def test_file_saving_to_disk(tmp_path):
+    # Define test parameters for the file that will be created
+    file_name = "test_output"
+    file_count = 1
+    data_lines = 2
+    output_dir = tmp_path
+    schema = '{"name": "str:rand", "age": "int:rand"}'
+
+    generate_data(schema, file_count, data_lines, str(output_dir), file_name, None, 1)
+
+    # Construct the expected file path
+    expected_file_path = output_dir / f"{file_name}0.json"
+
+    # Check if the file is created
+    assert os.path.exists(expected_file_path), "Output file was not created"
+
+    # Just in case check the content in the file
+    with open(expected_file_path, 'r') as file:
+        lines = file.readlines()
+        assert len(lines) == data_lines, "Incorrect number of lines in the file"
+
+
+
+def test_multiprocessing_file_generation(tmp_path):
+    file_name = "test_output"
+    file_count = 5
+    data_lines = 10
+    output_dir = tmp_path
+    schema = '{"name": "str:rand", "age": "int:rand"}'
+    multiprocessing = 2  # Set to a value greater than 1
+
+    generate_data(schema, file_count, data_lines, str(output_dir), file_name, None, multiprocessing)
+
+    # Check if the correct number of files are created
+    generated_files = os.listdir(output_dir)
+    assert len(generated_files) == file_count, f"Expected {file_count} files, but found {len(generated_files)}"
+
+
+
+def test_invalid_schemas():
+    invalid_schemas = [
+        '{"name": "int:hello"}',  # Invalid int format
+        '{"timestamp": "str:now"}',  # Invalid timestamp format
+        '{"age": "str:25"}'  # Type mismatch
+    ]
+
+    for schema_str in invalid_schemas:
+        schema = parse_schema(schema_str)
+        with pytest.raises(ValueError):  # Expect a ValueError to be raised
+            validate_schema(schema)
+
 

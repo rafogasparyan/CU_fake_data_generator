@@ -4,16 +4,15 @@ import uuid
 from multiprocessing import Pool
 import os
 import json
+import logging
+
+
 
 
 def generate_data_entry(schema):
     data_entry = {}
     for key, value_type in schema.items():
-        print(key)
-        print(value_type)
         data_type, type_spec = value_type.split(':', 1)
-        print(data_type)
-        print(type_spec)
         if data_type == 'timestamp':
             data_entry[key] = time.time()
         elif data_type == 'str':
@@ -33,10 +32,11 @@ def generate_data_entry(schema):
                 options_str = type_spec.replace("'", "\"")
                 options = json.loads(options_str)
                 data_entry[key] = random.choice(options)
+            elif not (type_spec.startswith('rand') or type_spec.startswith('[')):
+                logging.error(f"Invalid schema for integer type: {key}:{value_type}")
+                data_entry[key] = None
 
     return data_entry
-
-print(generate_data_entry({"fixed_value": "int:42"}))
 
 
 def generate_single_file(args):
@@ -68,3 +68,7 @@ def generate_data(schema, file_count, data_lines, path_to_save, file_name, file_
         pool.map(generate_single_file, args_list)
 
     print(f"Generated {file_count} files in {path_to_save}.")
+
+
+
+

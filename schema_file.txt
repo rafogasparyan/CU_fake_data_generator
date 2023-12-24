@@ -1,1 +1,1 @@
-{"fixed_value": "int:42"}
+{"fixed_value": "int:rand"}
