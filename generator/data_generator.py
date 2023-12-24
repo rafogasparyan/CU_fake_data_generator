@@ -9,11 +9,13 @@ import json
 def generate_data_entry(schema):
     data_entry = {}
     for key, value_type in schema.items():
+        print(key)
+        print(value_type)
         data_type, type_spec = value_type.split(':', 1)
-
+        print(data_type)
+        print(type_spec)
         if data_type == 'timestamp':
             data_entry[key] = time.time()
-
         elif data_type == 'str':
             if type_spec == 'rand':
                 data_entry[key] = str(uuid.uuid4())
@@ -33,6 +35,8 @@ def generate_data_entry(schema):
                 data_entry[key] = random.choice(options)
 
     return data_entry
+
+print(generate_data_entry({"fixed_value": "int:42"}))
 
 
 def generate_single_file(args):
