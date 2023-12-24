@@ -1,4 +1,6 @@
 import argparse
+import time
+
 from generator.data_generator import generate_data
 from utils.file_handler import clear_directory
 from utils.config_reader import read_defaults
@@ -29,12 +31,16 @@ def main():
         clear_directory(args.path_to_save_files, args.file_name)
 
     logging.info("Starting data generation.")
+    start_time = time.time()
     try:
         generate_data(args.data_schema, args.file_count, args.data_lines, args.path_to_save_files, args.file_name,
                       args.prefix, args.multiprocessing)
         logging.info("Data generation completed successfully.")
     except Exception as e:
         logging.error(f"An error occurred: {e}")
+
+    duration = time.time() - start_time
+    print(duration)
 
 
 if __name__ == "__main__":
@@ -43,9 +49,11 @@ if __name__ == "__main__":
 
 
 
+
+
 """
 command to run the code from terminal 
-python3 main.py "generator/output" --file_count=5 --data_lines=500 --clear_path --data_schema "{\"date\":\"timestamp:\", \"name\": \"str:rand\", \"type\":\"str:['client', 'partner', 'government']\", \"age\": \"int:rand(1, 90)\"}"
+python3 magicgenerator.py "generator/output" --file_count=5 --data_lines=500 --clear_path --data_schema "{\"date\":\"timestamp:\", \"name\": \"str:rand\", \"type\":\"str:['client', 'partner', 'government']\", \"age\": \"int:rand(1, 90)\"}"
  
 """
 

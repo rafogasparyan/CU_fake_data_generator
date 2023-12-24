@@ -7,7 +7,10 @@ import uuid
 
 def generate_data(schema, file_count, data_lines, path_to_save, file_name, file_prefix, multiprocessing):
     os.makedirs(path_to_save, exist_ok=True)
-    if isinstance(schema, str):
+    if os.path.isfile(schema):
+        with open(schema, 'r') as schema_file:
+            schema = json.load(schema_file)
+    elif isinstance(schema, str):
         schema = json.loads(schema)
 
     for i in range(file_count):
@@ -36,9 +39,9 @@ def generate_data_entry(schema):
             if type_spec == 'rand':
                 data_entry[key] = str(uuid.uuid4())
             elif type_spec.startswith('['):
-                options = eval(type_spec)
+                json_formatted_spec = type_spec.replace("'", '"')
+                options = json.loads(json_formatted_spec)
                 data_entry[key] = random.choice(options)
-
         elif data_type == 'int':
             if type_spec == 'rand':
                 data_entry[key] = random.randint(0, 10000)
@@ -46,7 +49,8 @@ def generate_data_entry(schema):
                 start, end = map(int, type_spec[5:-1].split(','))
                 data_entry[key] = random.randint(start, end)
             elif type_spec.startswith('['):
-                options = eval(type_spec)
+                options_str = type_spec.replace("'", "\"")
+                options = json.loads(options_str)
                 data_entry[key] = random.choice(options)
 
     return data_entry
