@@ -1,0 +1,2 @@
+[console_scripts]
+magicgenerator = magicgenerator.magicgenerator:main

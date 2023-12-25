@@ -1,0 +1,17 @@
+setup.py
+generator/__init__.py
+generator/data_generator.py
+generator/schema_parser.py
+magicgenerator/__init__.py
+magicgenerator/magicgenerator.py
+magicgenerator.egg-info/PKG-INFO
+magicgenerator.egg-info/SOURCES.txt
+magicgenerator.egg-info/dependency_links.txt
+magicgenerator.egg-info/entry_points.txt
+magicgenerator.egg-info/top_level.txt
+tests/__init__.py
+tests/test_generator.py
+tests/test_parser.py
+utils/__init__.py
+utils/config_reader.py
+utils/file_handler.py
